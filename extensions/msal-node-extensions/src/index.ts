@@ -7,8 +7,13 @@ export { PersistenceCachePlugin } from "./persistence/PersistenceCachePlugin.js"
 export { FilePersistence } from "./persistence/FilePersistence.js";
 export { FilePersistenceWithDataProtection } from "./persistence/FilePersistenceWithDataProtection.js";
 export { DataProtectionScope } from "./persistence/DataProtectionScope.js";
-export { KeychainPersistence } from "./persistence/KeychainPersistence.js";
-export { LibSecretPersistence } from "./persistence/LibSecretPersistence.js";
+export {
+    GenericKeyringPersistence,
+    /** @deprecated Use `GenericKeyringPersistence` instead. */
+    GenericKeyringPersistence as KeychainPersistence,
+    /** @deprecated Use `GenericKeyringPersistence` instead. */
+    GenericKeyringPersistence as LibSecretPersistence
+} from "./persistence/GenericKeyringPersistence.js";
 export { IPersistence } from "./persistence/IPersistence.js";
 export { CrossPlatformLockOptions } from "./lock/CrossPlatformLockOptions.js";
 export { PersistenceCreator } from "./persistence/PersistenceCreator.js";

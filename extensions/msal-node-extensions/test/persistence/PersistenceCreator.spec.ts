@@ -7,14 +7,13 @@ import {
     PersistenceCreator,
     IPersistenceConfiguration,
     FilePersistenceWithDataProtection,
-    KeychainPersistence,
-    LibSecretPersistence,
+    GenericKeyringPersistence,
     FilePersistence,
     Environment,
-    DataProtectionScope,
-} from "../../src";
-import { PersistenceError } from "../../src/error/PersistenceError";
-import { FileSystemUtils } from "../util/FileSystemUtils";
+    DataProtectionScope
+} from "../../src/index.js";
+import { PersistenceError } from "../../src/error/PersistenceError.js";
+import { FileSystemUtils } from "../util/FileSystemUtils.js";
 
 describe("Persistence Creator", () => {
     afterEach(() => {
@@ -28,14 +27,14 @@ describe("Persistence Creator", () => {
         cachePath: "./creator-test.json",
         dataProtectionScope: DataProtectionScope.CurrentUser,
         serviceName: "serviceName",
-        accountName: "accountName",
+        accountName: "accountName"
     };
 
     const emptyPeristenceConfig: IPersistenceConfiguration = {
         cachePath: undefined,
         dataProtectionScope: undefined,
         serviceName: undefined,
-        accountName: undefined,
+        accountName: undefined
     };
 
     if (process.platform === "win32") {
@@ -61,7 +60,7 @@ describe("Persistence Creator", () => {
         test("Creates the KeychainPersistence instance", async () => {
             expect(
                 await PersistenceCreator.createPersistence(persistenceConfig)
-            ).toBeInstanceOf(KeychainPersistence);
+            ).toBeInstanceOf(GenericKeyringPersistence);
         });
 
         test("Validation error thrown for macos", async () => {
@@ -72,27 +71,27 @@ describe("Persistence Creator", () => {
             } catch (e) {
                 expect(e).toBeInstanceOf(PersistenceError);
                 expect((e as PersistenceError).errorMessage).toBe(
-                    "Cache path, service name and/or account name not provided for the KeychainPersistence cache plugin"
+                    "Cache path, service name and/or account name not provided"
                 );
             }
         });
     } else {
-        test("Creates the LibSecretPersistence instance", async () => {
+        test("Creates the SecretServicePersistence instance", async () => {
             expect(
                 await PersistenceCreator.createPersistence(persistenceConfig)
-            ).toBeInstanceOf(LibSecretPersistence);
+            ).toBeInstanceOf(GenericKeyringPersistence);
         });
 
         test("Linux plain text fallback", async () => {
             jest.spyOn(
-                LibSecretPersistence.prototype,
+                GenericKeyringPersistence.prototype,
                 "verifyPersistence"
             ).mockRejectedValueOnce(new Error("Could not verify persistence"));
 
             expect(
                 await PersistenceCreator.createPersistence({
                     ...persistenceConfig,
-                    usePlaintextFileOnLinux: true,
+                    usePlaintextFileOnLinux: true
                 })
             ).toBeInstanceOf(FilePersistence);
         });
@@ -105,7 +104,7 @@ describe("Persistence Creator", () => {
             } catch (e) {
                 expect(e).toBeInstanceOf(PersistenceError);
                 expect((e as PersistenceError).errorMessage).toBe(
-                    "Cache path, service name and/or account name not provided for the LibSecretPersistence cache plugin"
+                    "Cache path, service name and/or account name not provided for the SecretServicePersistence cache plugin"
                 );
             }
         });
@@ -125,7 +124,7 @@ describe("Persistence Creator", () => {
     test("Propagate persistence verification error", async () => {
         try {
             jest.spyOn(
-                LibSecretPersistence.prototype,
+                GenericKeyringPersistence.prototype,
                 "verifyPersistence"
             ).mockRejectedValue(
                 PersistenceError.createPersistenceNotVerifiedError(

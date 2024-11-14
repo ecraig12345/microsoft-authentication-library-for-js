@@ -4,8 +4,7 @@
  */
 
 import { FilePersistenceWithDataProtection } from "./FilePersistenceWithDataProtection.js";
-import { LibSecretPersistence } from "./LibSecretPersistence.js";
-import { KeychainPersistence } from "./KeychainPersistence.js";
+import { GenericKeyringPersistence } from "./GenericKeyringPersistence.js";
 import { DataProtectionScope } from "./DataProtectionScope.js";
 import { Environment } from "../utils/Environment.js";
 import { IPersistence } from "./IPersistence.js";
@@ -35,39 +34,19 @@ export class PersistenceCreator {
             );
         }
 
-        // On Mac, uses keychain.
-        else if (Environment.isMacPlatform()) {
+        // On Mac, uses keychain. On Linux, uses secret service.
+        else if (Environment.isMacPlatform() || Environment.isLinuxPlatform()) {
             if (
                 !config.cachePath ||
                 !config.serviceName ||
                 !config.accountName
             ) {
                 throw PersistenceError.createPersistenceNotValidatedError(
-                    "Cache path, service name and/or account name not provided for the KeychainPersistence cache plugin"
+                    "Cache path, service name and/or account name not provided"
                 );
             }
 
-            peristence = await KeychainPersistence.create(
-                config.cachePath,
-                config.serviceName,
-                config.accountName,
-                config.loggerOptions
-            );
-        }
-
-        // On Linux, uses  libsecret to store to secret service. Libsecret has to be installed.
-        else if (Environment.isLinuxPlatform()) {
-            if (
-                !config.cachePath ||
-                !config.serviceName ||
-                !config.accountName
-            ) {
-                throw PersistenceError.createPersistenceNotValidatedError(
-                    "Cache path, service name and/or account name not provided for the LibSecretPersistence cache plugin"
-                );
-            }
-
-            peristence = await LibSecretPersistence.create(
+            peristence = await GenericKeyringPersistence.create(
                 config.cachePath,
                 config.serviceName,
                 config.accountName,
@@ -79,7 +58,9 @@ export class PersistenceCreator {
             );
         }
 
-        await peristence.verifyPersistence().catch(async (e) => {
+        try {
+            await peristence.verifyPersistence();
+        } catch (e) {
             if (
                 Environment.isLinuxPlatform() &&
                 config.usePlaintextFileOnLinux
@@ -107,7 +88,7 @@ export class PersistenceCreator {
             } else {
                 throw e;
             }
-        });
+        }
 
         return peristence;
     }

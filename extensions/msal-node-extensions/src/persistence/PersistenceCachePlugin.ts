@@ -10,21 +10,12 @@ import { pid } from "process";
 import {
     TokenCacheContext,
     ICachePlugin,
-    Logger,
+    Logger
 } from "@azure/msal-common/node";
 
 /**
  * MSAL cache plugin which enables callers to write the MSAL cache to disk on Windows,
  * macOs, and Linux.
- *
- * - Persistence can be one of:
- * - FilePersistence: Writes and reads from an unencrypted file. Can be used on Windows,
- * macOs, or Linux.
- * - FilePersistenceWithDataProtection: Used on Windows, writes and reads from file encrypted
- * with windows dpapi-addon.
- * - KeychainPersistence: Used on macOs, writes and reads from keychain.
- * - LibSecretPersistence: Used on linux, writes and reads from secret service API. Requires
- * libsecret be installed.
  */
 export class PersistenceCachePlugin implements ICachePlugin {
     public persistence: IPersistence;
@@ -36,6 +27,18 @@ export class PersistenceCachePlugin implements ICachePlugin {
 
     private logger: Logger;
 
+    /**
+     * MSAL cache plugin which enables callers to write the MSAL cache to disk on Windows,
+     * macOs, and Linux.
+     *
+     * @param persistence Persistence can be one of:
+     * - FilePersistence: Writes and reads from an unencrypted file. Can be used on Windows,
+     * macOs, or Linux.
+     * - FilePersistenceWithDataProtection: Used on Windows, writes and reads from file encrypted
+     * with windows dpapi-addon.
+     * - GenericKeyringPersistance: On macOs, writes and reads from keychain.
+     *   On linux, writes and reads from secret service API.
+     */
     constructor(
         persistence: IPersistence,
         lockOptions?: CrossPlatformLockOptions

@@ -22,9 +22,7 @@ export abstract class BasePersistence {
 
             if (!retrievedDummyData) {
                 throw PersistenceError.createCachePersistenceError(
-                    "Persistence check failed. Data was written but it could not be read. " +
-                        "Possible cause: on Linux, LibSecret is installed but D-Bus isn't running \
-                    because it cannot be started over SSH."
+                    "Persistence check failed. Data was written but it could not be read."
                 );
             }
 

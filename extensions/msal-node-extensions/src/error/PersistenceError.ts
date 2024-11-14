@@ -35,20 +35,12 @@ export class PersistenceError extends Error {
     }
 
     /**
-     * Error thrown when trying to write, load, or delete data from secret service on linux.
-     * Libsecret is used to access secret service.
+     * Error thrown when trying to write, load, or delete data from GenericKeyringPersistence.
      */
-    static createLibSecretError(errorMessage: string): PersistenceError {
-        return new PersistenceError("GnomeKeyringError", errorMessage);
-    }
-
-    /**
-     * Error thrown when trying to write, load, or delete data from keychain on macOs.
-     */
-    static createKeychainPersistenceError(
+    static createGenericKeyringPersistenceError(
         errorMessage: string
     ): PersistenceError {
-        return new PersistenceError("KeychainError", errorMessage);
+        return new PersistenceError("GenericKeyringError", errorMessage);
     }
 
     /**

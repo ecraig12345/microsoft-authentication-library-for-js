@@ -37,8 +37,8 @@ The `msal-node-extensions` library offers optional features to enhance the capab
 Supported platforms are Windows, Mac and Linux:
 
 - Windows - DPAPI is used for encryption.
-- MAC - The MAC KeyChain is used.
-- Linux - LibSecret is used for storing to "Secret Service".
+- Mac: The local keychain is used through [`@napi-rs/keyring`](https://www.npmjs.com/package/@napi-rs/keyring) (wrapping [`keyring-rs`](https://github.com/hwchen/keyring-rs)).
+- Linux: Secret service is used through [`secret-service-rs`](https://github.com/hwchen/secret-service-rs) via `@napi-rs/keyring`.
 
 > Note: It is recommended to use this library for cache persistence support for Public client applications such as Desktop apps only. In web applications, this may lead to scale and performance issues. Web applications are recommended to persist the cache in session.
 
@@ -46,17 +46,11 @@ Supported platforms are Windows, Mac and Linux:
 
 When using the native broker, refresh tokens are bound to the device on which they are acquired on and are not accessible by `msal-node` or the application. This provides a higher level of security that cannot be achieved by `msal-node` alone. More information about token brokering can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node/docs/brokering.md)
 
-## Prerequisites 
+## Prerequisites
 
 The `msal-node-extensions` library ships with pre-compiled binaries.
 
 > Note: If you are planning to do local development on msal-node-extensions itself you may need to install some additional tools. [node-gyp](https://github.com/nodejs/node-gyp) is used to compile [addons](https://nodejs.org/api/addons.html) for accessing system APIs. Installation requirements are listed on the [node-gyp README](https://github.com/nodejs/node-gyp#installation)
-
-On linux, the library uses `libsecret` so you may need to install it. Depending on your distribution, you will need to run the following command:
-
-- Debian/Ubuntu: `sudo apt-get install libsecret-1-dev`
-- Red Hat-based: `sudo yum install libsecret-devel`
-- Arch Linux: sudo `pacman -S libsecret`
 
 ## Installation
 
@@ -71,7 +65,7 @@ npm i @azure/msal-node-extensions --save
 Here is a code snippet on how to configure the token cache.
 
 ```js
-const { 
+const {
     DataProtectionScope,
     Environment,
     PersistenceCreator,
@@ -94,25 +88,23 @@ const persistenceConfiguration = {
 // 1. Detects the environment the application is running on and initializes the right persistence instance for the environment.
 // 2. Performs persistence validation for you.
 // 3. Performs any fallbacks if necessary.
-PersistenceCreator
-.createPersistence(persistenceConfiguration)
-.then(async (persistence) => {
-    const publicClientConfig = {
-        auth: {
-            clientId: "<CLIENT-ID>",
-            authority: "<AUTHORITY>",
-        },
+const persistence = await PersistenceCreator.createPersistence(persistenceConfiguration);
 
-        // This hooks up the cross-platform cache into MSAL
-        cache: {
-            cachePlugin: new PersistenceCachePlugin(persistence)
-        }
-    };
+const publicClientConfig = {
+    auth: {
+        clientId: "<CLIENT-ID>",
+        authority: "<AUTHORITY>",
+    },
 
-    const pca = new msal.PublicClientApplication(publicClientConfig);
-    
-    // Use the public client application as required...
-});
+    // This hooks up the cross-platform cache into MSAL
+    cache: {
+        cachePlugin: new PersistenceCachePlugin(persistence)
+    }
+};
+
+const pca = new msal.PublicClientApplication(publicClientConfig);
+
+// Use the public client application as required...
 ```
 
 All the arguments for the persistence configuration are explained below:
@@ -122,7 +114,7 @@ All the arguments for the persistence configuration are explained below:
 | dataProtectionScope | Specifies the scope of the data protection on Windows either the current user or the local machine. | Windows |
 | serviceName | This specifies the service name to be used on Mac and/or Linux | Mac and Linux |
 | accountName | This specifies the account name to be used on Mac and/or Linux | Mac and Linux |
-| usePlaintextFileOnLinux | This is a flag to default to plain text on linux if libsecret fails. Defaults to `false` | Linux |
+| usePlaintextFileOnLinux | This is a flag to default to plain text on linux if the secret service fails. Defaults to `false` | Linux |
 
 ### Security boundary
 On Windows and Linux, the token cache is scoped to the user session, i.e. all applications running on behalf of the user can access the cache. Mac offers a more restricted scope, ensuring that only the application that created the cache can access it, and prompting the user if others apps want access.
